@@ -1691,7 +1691,7 @@ void FlutterBluePlusWinrtPlugin::HandleMethodCall(const flutter::MethodCall<flut
 
         result->Success(flutter::EncodableValue(count)); return;
     }
-    if (method == "startScan") { scan_results_cache_.clear(); watcher_.Start(); result->Success(flutter::EncodableValue(true)); return; }
+    if (method == "startScan") { scan_results_cache_.clear(); watcher_.AllowExtendedAdvertisements(true); watcher_.Start(); result->Success(flutter::EncodableValue(true)); return; }
     if (method == "stopScan") { watcher_.Stop(); result->Success(flutter::EncodableValue(true)); return; }
     if (method == "getSystemDevices") { GetSystemDevicesAsync(std::move(result)); return; }
     if (method == "getAdapterState") { GetAdapterStateAsync(std::move(result)); return; }
