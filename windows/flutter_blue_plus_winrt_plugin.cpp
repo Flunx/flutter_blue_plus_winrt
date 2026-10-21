@@ -758,6 +758,32 @@ winrt::fire_and_forget FlutterBluePlusWinrtPlugin::GetSystemDevicesAsync(std::un
     }
 }
 
+// Start() while the watcher is still Stopping reports Started but never
+// delivers another advertisement, and that is every restart: flutter_blue_plus
+// sends stopScan then startScan back to back, and Stop() only begins the stop.
+// A normal stop leaves Stopping in about 10 ms, so wait it out. A watcher
+// already wedged that way stays Stopping for good, but Start() from there
+// works again, hence the cap.
+winrt::fire_and_forget FlutterBluePlusWinrtPlugin::StartScanAsync(std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+    auto alive = is_alive_;
+    for (int i = 0; i < 50 && watcher_.Status() == BluetoothLEAdvertisementWatcherStatus::Stopping; ++i) {
+        co_await winrt::resume_after(std::chrono::milliseconds(10));
+        co_await ui_thread_;
+        if (!*alive) co_return;
+    }
+    std::string error_msg;
+    try {
+        scan_results_cache_.clear();
+        watcher_.Start();
+    } catch (const winrt::hresult_error& e) { error_msg = utils::to_string(e.message()); }
+      catch (...) { error_msg = "Unknown error occurred"; }
+    if (!error_msg.empty()) {
+        result->Error("startScan", error_msg);
+        co_return;
+    }
+    result->Success(flutter::EncodableValue(true));
+}
+
 winrt::fire_and_forget FlutterBluePlusWinrtPlugin::GetAdapterStateAsync(std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     std::string error_msg;
     try {
@@ -1829,7 +1855,7 @@ void FlutterBluePlusWinrtPlugin::HandleMethodCall(const flutter::MethodCall<flut
 
         result->Success(flutter::EncodableValue(count)); return;
     }
-    if (method == "startScan") { scan_results_cache_.clear(); watcher_.Start(); result->Success(flutter::EncodableValue(true)); return; }
+    if (method == "startScan") { StartScanAsync(std::move(result)); return; }
     if (method == "stopScan") { watcher_.Stop(); result->Success(flutter::EncodableValue(true)); return; }
     if (method == "getSystemDevices") { GetSystemDevicesAsync(std::move(result)); return; }
     if (method == "getAdapterState") { GetAdapterStateAsync(std::move(result)); return; }

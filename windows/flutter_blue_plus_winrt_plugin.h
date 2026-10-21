@@ -111,6 +111,9 @@ class FlutterBluePlusWinrtPlugin : public flutter::Plugin {
   winrt::fire_and_forget GetAdapterStateAsync(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 
+  winrt::fire_and_forget StartScanAsync(
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+
   winrt::fire_and_forget GetBondedDevicesAsync(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 
