@@ -1,3 +1,6 @@
+## 0.0.23
+* Fix: a restarted scan found nothing until the app restarted. startScan now waits for a stopping watcher to stop before starting it again.
+
 ## 0.0.22
 * Write without response now completes once the stack has the packet, as on Android and Darwin, instead of after the send. Back-to-back writes no longer wait a connection event each (Windows 10 FOTA 7.8 -> 10 KB/s).
 
