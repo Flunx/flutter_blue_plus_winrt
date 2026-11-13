@@ -774,6 +774,7 @@ winrt::fire_and_forget FlutterBluePlusWinrtPlugin::StartScanAsync(std::unique_pt
     std::string error_msg;
     try {
         scan_results_cache_.clear();
+        watcher_.AllowExtendedAdvertisements(true);
         watcher_.Start();
     } catch (const winrt::hresult_error& e) { error_msg = utils::to_string(e.message()); }
       catch (...) { error_msg = "Unknown error occurred"; }
